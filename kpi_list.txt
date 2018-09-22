@@ -1,0 +1,18 @@
+- Flujos (filtro por periodo):
+1. Cantidad de transacciones (por unidad de tiempo)
+2. Valor de transacciones (por unidad de tiempo)
+3. Cantidad de transacciones (por usuario)
+4. Valor de transacciones (por unidad de tiempo)
+5. Cantidad de usuarios nuevos (por unidad de tiempo)
+6. Cantidad de avales entregados (por unidad de tiempo)
+7. Valor de avales entregados (por unidad de tiempo)
+8. Cambios de signo en los saldos (por usuario)
+
+
+- Stocks (filtro por datetime):
+1. Cantidad de usuarios
+2. Cantidad de usuarios con aval
+3. Valor del circulante --suma de saldos positivos
+4. Relación entre cuentas deudoras y cuentas acreedoras
+
+ 

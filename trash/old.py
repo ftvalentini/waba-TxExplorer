@@ -8,7 +8,7 @@
 #     df['name'] = df['name'].str.replace(account_prefix+r'.','')
 #     # data1 = [pd.Series(i)[['name','account_id']] for i in data_temp]
 #     # df1 = pd.DataFrame(data1)
-#     return df.loc[~df.name.isin(omit_accounts)]
+    #     return df.loc[~df.name.isin(omit_accounts)]
 
 # ### Para agregar usuarios no captados:
 # # open transacciones.json de usarios catalogados como holders
