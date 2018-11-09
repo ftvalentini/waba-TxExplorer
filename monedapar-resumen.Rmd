@@ -1,0 +1,150 @@
+---
+title: "MonedaPAR"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=F, warning=F, message=F)
+```
+
+```{r librerias}
+source('librerias.R')
+```
+
+```{r functions}
+"%+%" <- function(a,b) paste(a,b,sep="")
+
+nice_table <- function(table, columnames=NULL, sort_by) {
+  date_c = map_lgl(table, ~inherits(.x,"POSIXct")) %>% which()
+  table = table %>% mutate_at(date_c, ~format(.x,format='%F %T'))
+  sort_i = which(names(table)==sort_by) - 1
+  if (is.null(columnames)) columnames = names(table)
+  table %>% datatable(rownames=F,
+                      colnames=columnames,
+                      filter='top',
+                      extensions=list('Buttons'=NULL,
+                                      'Scroller'=NULL),
+                      options=list(dom='Bfrti',
+                                   buttons=list('copy','print',
+                                                list(extend = 'collection',
+                                                     buttons = c('csv', 'excel', 'pdf'),
+                                                     text = 'Download'),
+                                                I('colvis')),
+                                   order=list(sort_i,'desc'),
+                                   deferRender=T,
+                                   scrollY=340,
+                                   scroller=T,
+                                   scrollX=T
+                      ))
+}
+```
+
+```{r fecha}
+filesinfo = file.info(list.files("output/raw/", full.names = T))
+datetime = max(filesinfo$mtime)
+fecha = max(filesinfo$mtime) %>% substr(1,10)
+```
+
+
+```{r objetos-python}
+avales = read_csv("output/final/avales_history_clean.csv")
+txs = read_csv("output/final/txs_history_clean.csv")
+
+nodos = list.files(path="output/final/resumen/m/") %>% str_match('\\_([:alpha:]+)\\.csv') %>%
+  "["(,2) %>% unique
+
+resumen = list()
+resumen$m = map(nodos, ~read_csv("output/final/resumen/m/resumen_"%+%.x%+%".csv")) %>%
+  setNames(nodos)
+resumen$d = map(nodos, ~read_csv("output/final/resumen/d/resumen_"%+%.x%+%".csv")) %>%
+  setNames(nodos)
+```
+
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 12px;
+  }
+td {  /* Table  */
+  font-size: 11px;
+}
+h1.title {
+  font-size: 40px;
+}
+h1 { /* Header 1 */
+  font-size: 30px;
+}
+h2 { /* Header 2 */
+    font-size: 30px;
+}
+h3 { /* Header 3 */
+  font-size: 20px;
+}
+h4 { /* Header 4 */
+  font-size: 14px;
+}
+</style>
+
+Actualizado el `r format(datetime,format='%d/%m/%Y')` a las `r format(datetime,format='%H:%M:%S')`
+
+# {.tabset .tabset-fade}
+
+## Resumen {.tabset .tabset-pills}
+
+### Mensual {.tabset }
+
+```{r include=F}
+# si no el resto de las tablas aparacen mal! (it's a kind of magic)
+datatable(iris[1:2,])
+```
+
+```{r mensual, results='asis'}
+for (t in names(resumen$m)) {
+  cat('\n####', t, '\n')
+  cat("\n\n")
+  resumen$m[[t]] %>%
+    nice_table(sort_by='period',
+               columnames=c('Periodo'='period',
+                      'Cuentas registradas (acum.)'='registered_accounts',
+                      'Cuentas activas (acum.)'='active_accounts',
+                      'Cuentas con actividad'='accounts_with_tx',
+                      'Cantidad de transacciones'='n_transactions',
+                      'Valor de transacciones'='value_transactions')) %>%
+    knit_print() %>% cat()
+  cat("\n\n")
+}
+```
+
+### Diario {.tabset }
+
+```{r diario, results='asis'}
+for (t in names(resumen$d)) {
+  cat('\n####', t, '\n')
+  cat("\n\n")
+  resumen$d[[t]] %>%
+    nice_table(sort_by='period',
+               columnames=c('Periodo'='period',
+                      'Cuentas registradas (acum.)'='registered_accounts',
+                      'Cuentas activas (acum.)'='active_accounts',
+                      'Cuentas con actividad'='accounts_with_tx',
+                      'Cantidad de transacciones'='n_transactions',
+                      'Valor de transacciones'='value_transactions')) %>%
+    knit_print() %>% cat()
+  cat("\n\n")
+}
+```
+
+## Transacciones
+
+```{r txs}
+txs %>% nice_table(sort_by='datetime') %>% knit_print()
+```
+
+## Avales
+
+```{r avales}
+avales %>% nice_table(sort_by='datetime') %>% knit_print()
+```
+
+<!-- para dropdown menu -->
+<!-- ### Mensual {.tabset .tabset-dropdown} -->

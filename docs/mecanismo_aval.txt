@@ -1,0 +1,29 @@
+### Mecanismo de aval inicial (cuenta user)
+## TX uno
+# 0- Propuesta envia aval a user (0, 'amount', 'asset_id')
+# 1- Propuesta list user (7, "authorizing_account"=propuesta_id, "account_to_list"=user_id, new_listing=2)
+## TX dos
+# 0- propuesta list user (7, "authorizing_account"=propuesta_id, "account_to_list"=user_id, new_listing=0)
+# 1- propuesta envia BTS a user (0, 'from'=user, 'to'=propuesta, 'amount', 'asset_id')
+# 2- User envia aval a propuesta (0, 'amount', 'asset_id')
+# 3- propuesta list user (7, "authorizing_account"=propuesta_id, "account_to_list"=user_id, new_listing=2)
+## TX tres
+# 0- gobierno list user (7, "authorizing_account"=gob_id, "account_to_list"=user_id, new_listing=1)
+# 1- gobierno issue PAR a user (14, "issuer"=gob, "asset_to_issue"-"asset_id"=id_par)
+# 2- gobierno issue DESC a user (14, "issuer"=gob, "asset_to_issue"-"asset_id"=id_desc)
+# 3- gobierno list user (7, "authorizing_account"=gob_id, "account_to_list"=user_id, new_listing=0)
+# 4- propuesta list user (7, "authorizing_account"=prop_id, "account_to_list"=user_id, new_listing=0)
+
+### Aval de user1 a user2 (cuenta propuesta)
+## tx uno
+# 0- user1 envia aval a propuesta (0, 'from'=user1, 'to'=prop, ,'amount', 'asset_id')
+## tx dos
+# 0- Propuesta envia aval a user2 (0, 'from'=prop, 'to'=user2, 'amount', 'asset_id')
+# 1- Propuesta list user2 (7, "authorizing_account"=prop, "account_to_list"=user2, new_listing=2)
+## tx tres
+# 0- propuesta list user2 (7, "authorizing_account"=prop, "account_to_list"=user2, new_listing=0)
+# 1- propuesta envia BTS a user2 (0, 'from'=user2, 'to'=propuesta, 'amount', 'asset_id')
+# 2- user2 envia aval a propuesta (0, 'from'=user2, 'to'=prop, ,'amount', 'asset_id')
+# 3- propuesta list user2 (7, "authorizing_account"=prop, "account_to_list"=user2, new_listing=2)
+## tx cuatro
+# 4- propuesta list user2 (7, "authorizing_account"=prop_id, "account_to_list"=user_id, new_listing=0)
