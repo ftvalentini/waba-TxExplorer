@@ -18,8 +18,9 @@ paq_proj <- c("bsselectR")
 paq <- c(paq_desiempre,paq_proj)
 for (i in seq_along(paq)) {
   if (!(paq[i] %in% installed.packages()[,1])) {
-    install.packages(paq[i])
+    install.packages(paq[i], quiet=T, verbose=F)
   }
-  if (paq[i] %in% paq_desiempre) library(paq[i],character.only=T)
+  if (paq[i] %in% paq_desiempre) library(paq[i],character.only=T,
+                                         quietly=T,warn.conflicts=F,verbose=F)
 }
 rm(paq,paq_desiempre,paq_proj)

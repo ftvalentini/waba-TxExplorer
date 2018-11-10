@@ -4,7 +4,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo=F, warning=F, message=F)
+knitr::opts_chunk$set(echo=F, warning=F, message=F, progress=F, verbose=F)
 ```
 
 ```{r librerias}
@@ -47,16 +47,18 @@ fecha = max(filesinfo$mtime) %>% substr(1,10)
 
 
 ```{r objetos-python}
-avales = read_csv("output/final/avales_history_clean.csv")
-txs = read_csv("output/final/txs_history_clean.csv")
+avales = read_csv("output/final/avales_history_clean.csv", col_type=cols())
+txs = read_csv("output/final/txs_history_clean.csv", col_type=cols())
 
 nodos = list.files(path="output/final/resumen/m/") %>% str_match('\\_([:alpha:]+)\\.csv') %>%
   "["(,2) %>% unique
 
 resumen = list()
-resumen$m = map(nodos, ~read_csv("output/final/resumen/m/resumen_"%+%.x%+%".csv")) %>%
+resumen$m = map(nodos, ~read_csv("output/final/resumen/m/resumen_"%+%.x%+%".csv",
+                                 col_type=cols())) %>%
   setNames(nodos)
-resumen$d = map(nodos, ~read_csv("output/final/resumen/d/resumen_"%+%.x%+%".csv")) %>%
+resumen$d = map(nodos, ~read_csv("output/final/resumen/d/resumen_"%+%.x%+%".csv",
+                                 col_type=cols())) %>%
   setNames(nodos)
 ```
 

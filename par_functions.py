@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import re, sys, urllib.request, json, pickle
+import re, sys, urllib.request, json, pickle, datetime
 
 def token_data():
     """
@@ -327,7 +327,8 @@ def timeseries_activity(clean_txs_df, frec, nodo):
     period = dates.to_period(freq=frec)
     txs.loc[:,frec] = period.values
     # todos los periods (por si falta alguno)
-    all = pd.PeriodIndex(start=txs.datetime.min(), end=txs.datetime.max(), freq=frec)
+    last_day = datetime.datetime.now()
+    all = pd.PeriodIndex(start=txs.datetime.min(), end=last_day, freq=frec)
     # filter by nodo (tx es del nodo si tiene recipient y/o sender)
     if nodo=='all':
         nodo = txs.sender_nodo.append(txs.recipient_nodo).unique().tolist()
@@ -371,7 +372,8 @@ def timeseries_txs(clean_txs_df,frec,nodo):
     period = dates.to_period(freq=frec)
     txs.loc[:,frec] = period.values
     # todos los periods (por si falta alguno)
-    all = pd.PeriodIndex(start=txs.datetime.min(), end=txs.datetime.max(), freq=frec)
+    last_day = datetime.datetime.now()
+    all = pd.PeriodIndex(start=txs.datetime.min(), end=last_day, freq=frec)
     all_df = pd.Series(np.full_like(all,0), index=all, dtype='int64')
     # filter by nodo (tx es del nodo si tiene recipient y/o sender)
     if nodo!='all':
