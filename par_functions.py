@@ -108,9 +108,10 @@ def get_user_history(user_id):
                 break
     # si user ya tenia history guardado
     else:
-        old_i = old[user_id]
+        old = old[user_id]
+        old_i = [x['id'] for x in old]
         new = []
-        # lista que testa interseccion entre old y new (not intersect)
+        # lista que testa interseccion entre old y new por medio de id de la operacion
         intersect = []
         i = 0
         while not intersect:
@@ -119,10 +120,10 @@ def get_user_history(user_id):
             response = urllib.request.urlopen(url)
             data = json.loads(response.read())
             new += data
-            intersect = [x for x in new if x in old_i]
+            intersect = [x for x in new if x['id'] in old_i]
             i = i+1
         print('account '+user_id+' DONE')
-        out = new[:-len(intersect)] + old_i
+        out = new[:-len(intersect)] + old
     return out
 
 def get_register(json_account_history):
@@ -385,6 +386,17 @@ def timeseries_txs(clean_txs_df,frec,nodo):
     # salida
     out = pd.DataFrame({'n_transactions':n, 'value_transactions':value})
     return out
+
+def saldo_user(txs_df, user_name, date):
+    """
+    Get saldo MONEDAPAR from txs_df of user_name at date.
+    """
+    txs = txs_df
+    txsd = txs.loc[txs.datetime<=date]
+    send = txsd.loc[txs.sender_name==user_name].amount.sum()
+    rec = txsd.loc[txs.recipient_name==user_name].amount.sum()
+    saldo = rec - send
+    return saldo
 
 def get_user_name(user_id, account_prefix=r'moneda-par'):
     """
