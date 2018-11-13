@@ -71,24 +71,26 @@ def get_accounts():
     # de mas viejo a mas nuevo:
     names.reverse()
     ids.reverse()
-    df = pd.DataFrame({'id':ids,'name':names})
+    # por algun motivo hay ops duplicadas en register history!!! (mismo id, cambia 'virtual_op')
+    df = pd.DataFrame({'id':ids,'name':names}).drop_duplicates().reset_index(drop=True)
     return df
 
 def get_propuesta_history(user_id='1.2.151476'):
     old = pickle.load(open("output/raw/propuesta_history.p", "rb"))
+    old_i = [x['id'] for x in old]
     new = []
     # lista que testa interseccion entre old y new (not intersect)
     intersect = []
     i = 0
     while not intersect:
         url = 'http://185.208.208.184:5000/account_history_pager_elastic?account_id='+user_id+'&page='+str(i)
-        print('reading account '+user_id+': page '+str(i))
+        print('page '+str(i)+' ...   ', end="", flush=True)
         response = urllib.request.urlopen(url)
         data = json.loads(response.read())
+        print('[DONE]')
         new += data
-        intersect = [x for x in new if x in old]
+        intersect = [x for x in new if x['id'] in old_i]
         i = i+1
-    print('account '+user_id+' DONE')
     out = new[:-len(intersect)] + old
     return out
 
@@ -97,11 +99,12 @@ def get_user_history(user_id):
     # si user no tiene history guardado
     if user_id not in old.index:
         out = []
-        for page in range(999999999999999999999):
-            url = 'http://185.208.208.184:5000/account_history_pager_elastic?account_id='+user_id+'&page='+str(page)
-            print('reading account '+user_id+': page '+str(i))
+        for i in range(999999999999999999999):
+            url = 'http://185.208.208.184:5000/account_history_pager_elastic?account_id='+user_id+'&page='+str(i)
+            print('page '+str(i)+' ...   ', end="", flush=True)
             response = urllib.request.urlopen(url)
             data = json.loads(response.read())
+            print('[DONE]')
             if len(data)>0:
                 out += data
             else:
@@ -116,13 +119,13 @@ def get_user_history(user_id):
         i = 0
         while not intersect:
             url = 'http://185.208.208.184:5000/account_history_pager_elastic?account_id='+user_id+'&page='+str(i)
-            print('reading account '+user_id+': page '+str(i))
+            print('page '+str(i)+' ...   ', end="", flush=True)
             response = urllib.request.urlopen(url)
             data = json.loads(response.read())
+            print('[DONE]')
             new += data
             intersect = [x for x in new if x['id'] in old_i]
             i = i+1
-        print('account '+user_id+' DONE')
         out = new[:-len(intersect)] + old
     return out
 
@@ -157,7 +160,7 @@ def get_par_txs_fromhistory(json_account_history):
             'sender_id': tx_temp['op'][1]['from'],
             'recipient_id': tx_temp['op'][1]['to']}
         txs.append(tx_data_temp)
-    data = pd.DataFrame(txs)
+    data = pd.DataFrame(txs).reset_index(drop=True)
     #
     return data
 
@@ -180,7 +183,7 @@ def get_avales_fromhistory(json_propuesta_history):
             'sender_id': tx_temp['op'][1]['from'],
             'recipient_name': name_temp}
         txs.append(tx_data_temp)
-    df = pd.DataFrame(txs)
+    df = pd.DataFrame(txs).reset_index(drop=True)
     return df
 
 def transf_txsdf(txs_df, accounts_df, tokens_df, timezone="America/Buenos_Aires"):
