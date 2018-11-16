@@ -230,7 +230,7 @@ def transf_avalesdf(avales_df, accounts_df, tokens_df, timezone="America/Buenos_
 
 def filter_omitaccounts_txs(txs_df):
     """
-    Remove txs of accounts whose transactions (before 28/10/2018) or mutual transactions (anytime)
+    Remove txs of accounts whose transactions (before 28/10/2018 and amount<50) or mutual transactions (anytime)
     are not legitimate in a txs dataframe. Government accounts are also removed.
     (API can't read ID of names with dots --> filtering with name)
     """
@@ -238,8 +238,8 @@ def filter_omitaccounts_txs(txs_df):
     other = omit_accounts()
     out = txs_df.loc[~(txs_df.sender_name.isin(admin.name) | txs_df.recipient_name.isin(admin.name)),:]
     out = out.loc[~(out.sender_name.isin(other.name) & out.recipient_name.isin(other.name)),:]
-    out = out.loc[~(((out.sender_name.isin(other.name)) | (out.recipient_name.isin(other.name))) &
-            (out.datetime<'28-10-2018')),:]
+    out = out.loc[~( ( (out.sender_name.isin(other.name)) | (out.recipient_name.isin(other.name)) ) &
+            (out.datetime<'28-10-2018') & (out.amount<50)),:]
     return out
 
 def filter_omitaccounts_avales(df):
@@ -290,6 +290,26 @@ def merge_txs_nododata(txs_df, nododata_df):
     df = df.rename(columns={'nodo':'sender_nodo'})
     df = pd.merge(df, nododata_df, how='left', left_on='recipient_name', right_on='name').drop('name',axis=1)
     df = df.rename(columns={'nodo':'recipient_nodo'})
+    return df
+
+def saldo_history_user(txs_df, user_name, frec):
+    """
+    Get history of MONEDAPAR sent, received and cumulative balance by user_name from a txs_df (the raw one).
+    frec equals 'm' or 'd'
+    """
+    txs = txs_df
+    # frec column
+    txs.loc[:,frec] = txs.datetime.dt.to_period(freq=frec)
+    # all periods
+    last_day = datetime.datetime.now()
+    all = pd.PeriodIndex(start=txs.datetime.min(), end=last_day, freq=frec)
+    all_df = pd.Series(np.full_like(all,0), index=all)
+    # value sent and received each period
+    send = txs.loc[txs.sender_name==user_name].groupby(frec).sum().amount.add(all_df, fill_value=0)
+    rec = txs.loc[txs.recipient_name==user_name].groupby(frec).sum().amount.add(all_df, fill_value=0)
+    # cumulative balance
+    saldo_cum = (rec - send).cumsum()
+    df = pd.DataFrame({'sent':send,'received':rec,'balance_cum':saldo_cum})
     return df
 
 def timeseries_register(json_propuesta_history, nododata_df, frec, nodo):
@@ -365,7 +385,7 @@ def timeseries_activity(clean_txs_df, frec, nodo):
     out = pd.DataFrame({'active_accounts':active_accounts, 'accounts_with_tx':accounts_with_tx})
     return out
 
-def timeseries_txs(clean_txs_df,frec,nodo):
+def timeseries_txs(clean_txs_df, frec, nodo):
     """
     Extrae timeseries de txs (value and number) en cada periodo
     Frecuencia dada por frec ('m' o 'd')
@@ -384,22 +404,44 @@ def timeseries_txs(clean_txs_df,frec,nodo):
         txs = txs.loc[txs.sender_nodo.isin([nodo]) | txs.recipient_nodo.isin([nodo])]
     # number of txs by period
     n = txs.groupby(frec).count().amount.add(all_df, fill_value=0)
+    n_cum = n.cumsum()
     # value of txs by period
     value = txs.groupby(frec).sum().amount.add(all_df, fill_value=0)
+    value_cum = value.cumsum()
     # salida
-    out = pd.DataFrame({'n_transactions':n, 'value_transactions':value})
+    out = pd.DataFrame({'n_transactions':n, 'value_transactions':value,
+                        'n_transactions_cum':n_cum, 'value_transactions_cum':value_cum})
     return out
 
-def saldo_user(txs_df, user_name, date):
+def timeseries_circ(saldos_history, nododata_df, frec, nodo):
     """
-    Get saldo MONEDAPAR from txs_df of user_name at date.
+    Extrae timeseries de circulante en cada periodo de saldos_history series
+    Frecuencia dada por frec ('m' o 'd')
     """
-    txs = txs_df
-    txsd = txs.loc[txs.datetime<=date]
-    send = txsd.loc[txs.sender_name==user_name].amount.sum()
-    rec = txsd.loc[txs.recipient_name==user_name].amount.sum()
-    saldo = rec - send
-    return saldo
+    # saldos diarios de cada user (ya incluye todas las fechas posibles)
+    saldos = saldos_history
+    # filter by nodo (saldos de users del nodo + cuenta-nodo)
+    if nodo!='all':
+        users_nodo = nododata_df.loc[nododata_df.nodo==nodo].name.tolist()
+        if nodo!='otros':
+            saldos = saldos[users_nodo + [nodo]]
+        else:
+            saldos = saldos[users_nodo]
+    # saldos apilados (una fila por usuario-fecha)
+    saldos_all = pd.concat(saldos.tolist())
+    # saldos positivos
+    saldos_pos = saldos_all.loc[saldos_all.balance_cum>0]
+    # suma de saldos positivos
+    circulante = saldos_pos.groupby(saldos_pos.index).sum().loc[:,['balance_cum']]
+    circulante.columns = ['circ']
+    # si nodo no tiene transacciones usa indice del primer usuario y pone ceros:
+    if circulante.shape[0]==0:
+        circulante = pd.DataFrame({'circ':0}, index=saldos[0].index)
+    # agrupa por mes si necesario:
+    if frec=='m':
+        circulante.loc[:,frec] = circulante.index.asfreq(freq=frec)
+        circulante = circulante.groupby(frec).last()
+    return circulante
 
 def get_user_name(user_id, account_prefix=r'moneda-par'):
     """
@@ -418,6 +460,18 @@ def get_user_id(user_name):
     response = urllib.request.urlopen(url)
     id = json.loads(response.read())
     return id
+
+def saldo_user_OLD(txs_df, user_name, date):
+    """
+    DEPRECATED
+    Get saldo MONEDAPAR from txs_df of user_name at date.
+    """
+    txs = txs_df
+    txsd = txs.loc[txs.datetime<=date]
+    send = txsd.loc[txsd.sender_name==user_name].amount.sum()
+    rec = txsd.loc[txsd.recipient_name==user_name].amount.sum()
+    saldo = rec - send
+    return saldo
 
 def get_accounts_OLD(prefix=r'moneda-par'):
     """

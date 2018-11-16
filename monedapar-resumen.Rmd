@@ -47,18 +47,19 @@ fecha = max(filesinfo$mtime) %>% substr(1,10)
 
 
 ```{r objetos-python}
-avales = read_csv("output/final/avales_history_clean.csv", col_type=cols())
-txs = read_csv("output/final/txs_history_clean.csv", col_type=cols())
+loc = locale(tz="America/Buenos_Aires")
+avales = read_csv("output/final/avales_history_clean.csv", col_type=cols(), locale=loc)
+txs = read_csv("output/final/txs_history_clean.csv", col_type=cols(), locale=loc)
 
 nodos = list.files(path="output/final/resumen/m/") %>% str_match('\\_([:alpha:]+)\\.csv') %>%
   "["(,2) %>% unique
 
 resumen = list()
 resumen$m = map(nodos, ~read_csv("output/final/resumen/m/resumen_"%+%.x%+%".csv",
-                                 col_type=cols())) %>%
+                                 col_type=cols(), locale=loc)) %>%
   setNames(nodos)
 resumen$d = map(nodos, ~read_csv("output/final/resumen/d/resumen_"%+%.x%+%".csv",
-                                 col_type=cols())) %>%
+                                 col_type=cols(), locale=loc)) %>%
   setNames(nodos)
 ```
 
@@ -84,6 +85,9 @@ h3 { /* Header 3 */
 }
 h4 { /* Header 4 */
   font-size: 14px;
+}
+.text_filter { /* Filter box */
+  font-size: 11px;
 }
 </style>
 
@@ -111,7 +115,10 @@ for (t in names(resumen$m)) {
                       'Cuentas activas (acum.)'='active_accounts',
                       'Cuentas con actividad'='accounts_with_tx',
                       'Cantidad de transacciones'='n_transactions',
-                      'Valor de transacciones'='value_transactions')) %>%
+                      'Valor de transacciones'='value_transactions',
+                      'Cantidad de transacciones (acum.)'='n_transactions_cum',
+                      'Valor de transacciones (acum.)'='value_transactions_cum',
+                      'Circulante (suma de saldos positivos)'='circ')) %>%
     knit_print() %>% cat()
   cat("\n\n")
 }
@@ -130,7 +137,10 @@ for (t in names(resumen$d)) {
                       'Cuentas activas (acum.)'='active_accounts',
                       'Cuentas con actividad'='accounts_with_tx',
                       'Cantidad de transacciones'='n_transactions',
-                      'Valor de transacciones'='value_transactions')) %>%
+                      'Valor de transacciones'='value_transactions',
+                      'Cantidad de transacciones (acum.)'='n_transactions_cum',
+                      'Valor de transacciones (acum.)'='value_transactions_cum',
+                      'Circulante (suma de saldos positivos)'='circ')) %>%
     knit_print() %>% cat()
   cat("\n\n")
 }
