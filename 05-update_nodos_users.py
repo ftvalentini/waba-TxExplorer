@@ -67,22 +67,29 @@ members = pd.merge(members.drop('nodo',axis=1), avales_u_tab, how='left', left_o
 members_final = members_final.append(members.loc[members.nodo.notnull()])
 members = members.loc[members.nodo.isnull()]
 
-#%% criterio: recibio pares de user del nodo (txs sin omit accounts ni special)
-txsf = pf.filter_omitaccounts_txs(txs)
-txsf = pf.filter_special(txsf)
-txs_u_tab = txsf.loc[txsf.sender_name.isin(members_final.name) &
-                     ~txsf.recipient_name.isin(pd.concat([nodos.name,members_final.name])),
-                    ['sender_name','recipient_name']].drop_duplicates()
-txs_u_tab = pd.merge(txs_u_tab, members_final, how='left', left_on='sender_name', right_on='name').loc[:,['nodo','recipient_name']]
-txs_u_tab.columns = ['nodo','name']
-txs_u_tab = txs_u_tab.drop_duplicates()
-# alerta si un user pertenece a mas de un nodo:
-if len(txs_u_tab.name.unique())<len(txs_u_tab.name):
-    sys.exit(str(txs_u_tab.name.loc[txs_u_tab.name.duplicated()].tolist()) + " received PAR from users of different nodes")
-members = pd.merge(members.drop('nodo',axis=1), txs_u_tab, how='left', left_on='name', right_on='name')
-# agrega al definitivo y saca del temporal:
-members_final = members_final.append(members.loc[members.nodo.notnull()])
-members = members.loc[members.nodo.isnull()]
+# #%% criterio: recibio pares de user del nodo (txs sin omit accounts ni special) - NO SE USA MAS
+# txsf = pf.filter_omitaccounts_txs(txs)
+# txsf = pf.filter_special(txsf)
+# txs_u_tab = txsf.loc[txsf.sender_name.isin(members_final.name) &
+#                      ~txsf.recipient_name.isin(pd.concat([nodos.name,members_final.name])),
+#                     ['sender_name','recipient_name']].drop_duplicates()
+# txs_u_tab = pd.merge(txs_u_tab, members_final, how='left', left_on='sender_name', right_on='name').loc[:,['nodo','recipient_name']]
+# txs_u_tab.columns = ['nodo','name']
+# txs_u_tab = txs_u_tab.drop_duplicates()
+# # alerta si un user pertenece a mas de un nodo:
+# if len(txs_u_tab.name.unique())<len(txs_u_tab.name):
+#     sys.exit(str(txs_u_tab.name.loc[txs_u_tab.name.duplicated()].tolist()) + " received PAR from users of different nodes")
+# members = pd.merge(members.drop('nodo',axis=1), txs_u_tab, how='left', left_on='name', right_on='name')
+# # agrega al definitivo y saca del temporal:
+# members_final = members_final.append(members.loc[members.nodo.notnull()])
+# members = members.loc[members.nodo.isnull()]
+
+#%% ajustes manuales
+otros20181119 = ['alessandroni','alfon1402','algarrobo','carlosloza','clauditesan','darriogo','dorisadelina','elidak','elmilitante',
+ 'federicopacha','gabriel12b','genaromarcelo18','gini2018','laloarroyo','lamotta','lisandrofierro','lyllanschuck','mateo',
+ 'matiasjr1985','mongi','myriamrfp','nahuel','nodogualeguaychu','raulvalls','robertovera','robles','simon1965','vdeluca']
+members_final = members_final.drop(members_final[members_final.name.isin(otros20181119)].index)
+members = members.append(pd.DataFrame({'name': otros20181119, 'nodo':np.NAN}), ignore_index=True)
 
 #%% save tabla final
 members_final = members_final.append(members).fillna('otros')
