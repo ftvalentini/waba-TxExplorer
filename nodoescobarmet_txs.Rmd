@@ -1,0 +1,151 @@
+---
+title: "nodoescobarmet"
+date: "`r Sys.Date()`"
+output: html_document
+lang: es
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=F, warning=F, message=F, progress=F, verbose=F)
+```
+
+```{r librerias}
+source('librerias.R')
+```
+
+```{r functions}
+"%+%" <- function(a,b) paste(a,b,sep="")
+
+nice_table <- function(table, columnames=NULL, sort_by, nota=NULL) {
+  date_c = map_lgl(table, ~inherits(.x,"POSIXct")) %>% which()
+  table = table %>% mutate_at(date_c, ~format(.x,format='%F %T'))
+  sort_i = which(names(table)==sort_by) - 1
+  if (is.null(columnames)) columnames = names(table)
+  if (is.null(nota)) nota = ""
+  table %>% datatable(rownames=F,
+                      colnames=columnames,
+                      caption=htmltools::tags$caption(
+                        style='caption-side: bottom',
+                        nota),
+                      filter='top',
+                      extensions=list('Buttons'=NULL,
+                                      'Scroller'=NULL),
+                      options=list(dom='Bfrti',
+                                   buttons=list('copy','print',
+                                                list(extend = 'collection',
+                                                     buttons = c('csv', 'excel', 'pdf'),
+                                                     text = 'Download'),
+                                                I('colvis')),
+                                   order=list(sort_i,'asc'),
+                                   deferRender=T,
+                                   scrollY=340,
+                                   scroller=T,
+                                   scrollX=T
+                      ))
+}
+```
+
+```{r fecha}
+fecha = Sys.Date()
+meses = c("Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto",
+          "Septiembre","Octubre","Noviembre","Diciembre")
+```
+
+
+```{r objetos-python}
+loc = locale(tz="America/Buenos_Aires")
+ruta = "output/final/txs_escobarmet/"
+resumen = read_csv(ruta%+%'resumen.csv', col_type=cols(), locale=loc)
+users = list.files(path=ruta) %>% str_match('detalle_(.+)\\.csv') %>% na.omit() %>% 
+  "["(,2) %>% unique
+detalles = map(users, 
+                ~read_csv(ruta%+%'detalle_'%+%.x%+%'.csv',
+                          col_type=cols(), locale=loc)) %>%
+  setNames(users)
+```
+
+<style type="text/css">
+
+body{ /* Normal  */
+  font-size: 12px;
+}
+h1.title {
+  font-size: 40px;
+}
+h1 { /* Header 1 */
+  font-size: 8px;
+}
+h2 { /* Header 2 */
+    font-size: 8px;
+}
+h3 { /* Header 3 */
+  font-size: 8px;
+}
+h4 { /* Header 4 */
+    font-size: 8px;
+}
+td {  /* Table cells  */
+  font-size: 11px;
+}
+th {  /* Table header  */
+  font-size: 11px;
+}
+.dataTables_filter { /* search box */
+  font-size: 11px;
+}
+td.header input {
+  font-size: 40px;
+}
+.dataTables_wrapper .dataTables_processing { /* Filter box */
+  font-size: 40px;
+}
+</style>
+
+`r meses[lubridate::month(fecha)]` de `r lubridate::year(fecha)`
+
+# {.tabset .tabset-fade}
+
+## Resumen
+
+```{r resumen}
+resumen %>% nice_table(sort_by='usuario',
+                       columnames=c('Usuario'='usuario',
+                                    'Gasto (intra-nodo)'='gasto_intra',
+                                    'Gasto (extra-nodo)'='gasto_extra',
+                                    'Gasto (total)'='gasto',
+                                    'Ingreso (intra-nodo)'='ingreso_intra',
+                                    'Ingreso (extra-nodo)'='ingreso_extra',
+                                    'Ingreso (total)'='ingreso',
+                                    'Saldo (intra-nodo)'='saldo_intra',
+                                    'Saldo (extra-nodo)'='saldo_extra',
+                                    'Saldo (total)'='saldo'),
+                       nota='No incluye los intercambios con la cuenta coordinadora del nodo') %>% 
+  formatStyle(c('Gasto (total)',
+                'Ingreso (total)',
+                'Saldo (total)'), color='black', fontWeight='bold') %>% 
+  knit_print()
+```
+
+## Detalle {.tabset}
+
+```{r include=F}
+# si no el resto de las tablas aparacen mal! (it's a kind of magic)
+datatable(iris[1:2,])
+```
+
+```{r detalles, results='asis'}
+for (t in names(detalles)) {
+  cat('\n###', t, '\n')
+  cat("\n\n")
+  detalles[[t]] %>%
+    nice_table(sort_by='datetime',
+               columnames=c('Fecha y hora'='datetime',
+                      'Monto'='amount',
+                      'Emisor'='sender_name',
+                      'Receptor'='recipient_name'),
+               nota='Incluye todos los intercambios') %>%
+    knit_print() %>% cat()
+  cat("\n\n")
+}
+```
+
