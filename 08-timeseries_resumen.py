@@ -19,7 +19,6 @@ nodos_list = nodos_list.loc[nodos_list!='pamelaps'].tolist() + ['otros','all']
 
 for f in frec_list:
     print("\nTime series " + f)
-    start = time.time()
     for n in nodos_list:
         t0 = time.time()
         print("\tfor " + n + " ...   ", end="", flush=True)
@@ -32,8 +31,6 @@ for f in frec_list:
         out.to_csv("output/final/resumen/"+f+"/resumen_"+n+".csv")
         t1 = time.time()
         print("[DONE] in " + str(round(t1-t0,1)) + " seconds")
-    end = time.time()
-    print("DONE in " + str(round(end-start,1)) + " seconds")
 
 
 # register = pf.timeseries_register(propuesta_history, nododata_df=nodo_members, frec=f, nodo=n)

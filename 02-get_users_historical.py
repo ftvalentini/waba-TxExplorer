@@ -9,7 +9,7 @@ import par_functions as pf
 accounts = pf.get_accounts()
 users_full_history = []
 for i in range(len(accounts.id)):
-    print('reading account '+ accounts.id.iloc[i] +' ('+str(i)+' of '+str(len(accounts.id)-1)+')')
+    print('reading account '+ accounts.id.iloc[i] +' ('+str(i+1)+' of '+str(len(accounts.id))+')')
     t0 = time.time()
     history = pf.get_user_history(user_id=accounts.id.iloc[i])
     t1 = time.time()

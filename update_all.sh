@@ -14,13 +14,15 @@ Rscript 09-update_html.R &&
 gdrive-windows-x64.exe update 1uoiWrrumrbiyi3Mk63hyNEMTuLCW7aHA output/final/html/monedapar-resumen.html
 
 end=$(date +%s)
+fecha=$(date +'%Y-%m-%d %H:%M:%S')
 
 dif=$((end-start))
 hor=$((dif / 3600))
 resto=$((dif % 3600))
 min=$((resto / 60))
 seg=$((resto % 60))
-echo "Elapsed time: $hor hours $min minutes $seg seconds"
+printf "\nCompleted at $fecha"
+printf "\nElapsed time: $hor hours $min minutes $seg seconds"
 
 $SHELL
 
