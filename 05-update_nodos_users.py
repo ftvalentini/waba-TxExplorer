@@ -38,7 +38,7 @@ avales_tab = avales.loc[avales.sender_name.isin(nodos.name) & ~avales.recipient_
 avales_tab.columns = ['nodo','name']
 members = pd.merge(members.drop('nodo',axis=1), avales_tab, how='left', left_on='name', right_on='name')
 # agrega al definitivo y saca del temporal:
-members_final = members_final.append(members.loc[members.nodo.notnull()])
+members_final = members_final.append(members.loc[members.nodo.notnull()], ignore_index=True)
 members = members.loc[members.nodo.isnull()]
 
 #%% criterio: recibio MONEDAPAR del nodo
@@ -47,7 +47,7 @@ txs_tab = txs.loc[txs.sender_name.isin(nodos.name) & ~txs.recipient_name.isin(pd
 txs_tab.columns = ['nodo','name']
 members = pd.merge(members.drop('nodo',axis=1), txs_tab, how='left', left_on='name', right_on='name')
 # agrega al definitivo y saca del temporal:
-members_final = members_final.append(members.loc[members.nodo.notnull()])
+members_final = members_final.append(members.loc[members.nodo.notnull()], ignore_index=True)
 members = members.loc[members.nodo.isnull()]
 
 #%% criterio: recibio aval de user del nodo (avales sin omit accounts ni special tx)
@@ -64,7 +64,7 @@ if len(avales_u_tab.name.unique())<len(avales_u_tab.name):
     sys.exit(str(avales_u_tab.name.loc[avales_u_tab.name.duplicated()].tolist()) + " received avales from users of different nodes")
 members = pd.merge(members.drop('nodo',axis=1), avales_u_tab, how='left', left_on='name', right_on='name')
 # agrega al definitivo y saca del temporal:
-members_final = members_final.append(members.loc[members.nodo.notnull()])
+members_final = members_final.append(members.loc[members.nodo.notnull()], ignore_index=True)
 members = members.loc[members.nodo.isnull()]
 
 # #%% criterio: recibio pares de user del nodo (txs sin omit accounts ni special) - NO SE USA MAS
@@ -84,10 +84,10 @@ members = members.loc[members.nodo.isnull()]
 # members_final = members_final.append(members.loc[members.nodo.notnull()])
 # members = members.loc[members.nodo.isnull()]
 
-#%% ajustes manuales
+#%% criterio: ajustes manuales
 otros20181119 = ['alessandroni','alfon1402','algarrobo','carlosloza','clauditesan','darriogo','dorisadelina','elidak','elmilitante',
  'federicopacha','gabriel12b','genaromarcelo18','gini2018','laloarroyo','lamotta','lisandrofierro','lyllanschuck','mateo',
- 'matiasjr1985','mongi','myriamrfp','nahuel','nodogualeguaychu','raulvalls','robertovera','robles','simon1965','vdeluca']
+ 'matiasjr1985','mongi','myriamrfp','nahuel','raulvalls','robertovera','robles','simon1965','vdeluca']
 members_final = members_final.drop(members_final[members_final.name.isin(otros20181119)].index)
 members = members.append(pd.DataFrame({'name': otros20181119, 'nodo':np.NAN}), ignore_index=True)
 
