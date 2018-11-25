@@ -322,10 +322,12 @@ def timeseries_register(json_propuesta_history, nododata_df, frec, nodo):
     dates = [i['timestamp'] for i in registros]
     nombres = pd.Series([i['op'][1]['name'] for i in registros]).str.replace(r'moneda-par.','')
     # dataframe (timezone BsAs, ordenado, merge con nodo, elimina nodo=None (cuentas nodo))
+    # drop_duplicates porque hay registros duplicados (mismo id distinto virtual_op)
     reg_df = pd.DataFrame({'datetime':pd.to_datetime(dates).tz_localize('UTC').tz_convert('America/Buenos_Aires'),
-                          'name':nombres}).sort_values('datetime')
+                          'name':nombres}).sort_values('datetime').drop_duplicates().reset_index(drop=True)
     reg_df['m'] = reg_df.datetime.dt.to_period(freq='m')
     reg_df['d'] = reg_df.datetime.dt.to_period(freq='d')
+    # right join saca las cuentas coordinadoras de nodo
     reg_df = pd.merge(reg_df, nododata_df, how='right', left_on='name', right_on='name').drop('name',axis=1)
     if nodo!='all':
         reg_df = reg_df.loc[reg_df.nodo==nodo].drop('nodo',axis=1)
@@ -375,7 +377,7 @@ def timeseries_activity(clean_txs_df, frec, nodo):
     new = []
     for t in all:
         ids_sen_temp = txs.loc[(txs.loc[:,frec]==t) & (txs.sender_nodo.isin(nodo)),'sender_id']
-        ids_rec_temp = txs.loc[(txs.loc[:,frec]==t) & (txs.sender_nodo.isin(nodo)),'recipient_id']
+        ids_rec_temp = txs.loc[(txs.loc[:,frec]==t) & (txs.recipient_nodo.isin(nodo)),'recipient_id']
         ids_temp = ids_sen_temp.append(ids_rec_temp, ignore_index=True).unique()
         ids_new = ids_temp[~pd.Series(ids_temp).isin(ids_old)]
         ids_old += ids_new.tolist()
