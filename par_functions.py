@@ -65,8 +65,8 @@ def get_accounts():
     # history of propuesta par
     propuesta_history = pickle.load(open("output/raw/propuesta_history.p", "rb"))
     # nombres moneda-par registrados en history
-    register_history = [i for i in propuesta_history if i['op'][0]==5 and 'moneda-par' in i['op'][1]['name']]
-    names = [i['op'][1]['name'].replace(r'moneda-par.','') for i in register_history]
+    register_history = [i for i in propuesta_history if 'op_type' in i and i['op_type']==5 and 'moneda-par' in i['op']['name']]
+    names = [i['op']['name'].replace(r'moneda-par.','') for i in register_history]
     ids = [i['result'].translate(str.maketrans('','',r'[""]')).split(',')[1] for i in register_history]
     # de mas viejo a mas nuevo:
     names.reverse()
@@ -75,7 +75,8 @@ def get_accounts():
     df = pd.DataFrame({'id':ids,'name':names}).drop_duplicates().reset_index(drop=True)
     return df
 
-def get_propuesta_history(user_id='1.2.151476'):
+def get_propuesta_history():
+    user_id='1.2.151476'
     old = pickle.load(open("output/raw/propuesta_history.p", "rb"))
     old_i = [x['id'] for x in old]
     new = []
@@ -133,8 +134,8 @@ def get_register(json_account_history):
     """
     Get register time of a json_account_history of a user
     """
-    data_register = [i for i in json_account_history if i['op'][0]==5]
-    register_time = data_register[0]['timestamp']
+    data_register = [i for i in json_account_history if 'op_type' in i and i['op_type']==5]
+    register_time = data_register['timestamp']
     return register_time
 
 def convert_datetime(string, timezone='America/Buenos_Aires'):
@@ -148,17 +149,17 @@ def get_par_txs_fromhistory(json_account_history):
     """
     Get dataframe with data from a user's json_account_history where MONEDAPAR tokens are involved.
     """
-    data_tokens = [i for i in json_account_history if 'amount' in i['op'][1] and i['op'][1]['amount']['asset_id']=='1.3.1236']
+    data_tokens = [i for i in json_account_history if 'amount_' in i['op'] and i['op']['amount_']['asset_id']=='1.3.1236']
     txs = []
     for txi in range(len(data_tokens)):
         tx_temp = data_tokens[txi]
         tx_data_temp = {
             'id': tx_temp['id'],
             'datetime': tx_temp['timestamp'],
-            'amount': tx_temp['op'][1]['amount']['amount']/100,
-            'asset_id': tx_temp['op'][1]['amount']['asset_id'],
-            'sender_id': tx_temp['op'][1]['from'],
-            'recipient_id': tx_temp['op'][1]['to']}
+            'amount': tx_temp['op']['amount_']['amount']/100,
+            'asset_id': tx_temp['op']['amount_']['asset_id'],
+            'sender_id': tx_temp['op']['from'],
+            'recipient_id': tx_temp['op']['to']}
         txs.append(tx_data_temp)
     data = pd.DataFrame(txs).reset_index(drop=True)
     #
@@ -168,19 +169,19 @@ def get_avales_fromhistory(json_propuesta_history):
     """
     Get dataframe with transfers of avales recorded in json_propuesta_history
     """
-    avales = [i for i in json_propuesta_history if i['op'][0]==0 and
-              i['op'][1]['amount']['asset_id'] in ('1.3.1319','1.3.1320','1.3.1322') and
-              i['op'][1]['fee']['asset_id'] != '1.3.0']
+    avales = [i for i in json_propuesta_history if 'amount_' in i['op'] and
+              i['op']['amount_']['asset_id'] in ('1.3.1319','1.3.1320','1.3.1322') and
+              i['op']['fee']['asset_id'] != '1.3.0']
     txs = []
     for i in range(len(avales)):
         tx_temp = avales[i]
-        name_temp = bytes.fromhex(tx_temp['op'][1]['memo']['message']).decode('latin-1').split(r':',1)[1]
+        name_temp = bytes.fromhex(tx_temp['op']['memo']['message']).decode('latin-1').split(r':',1)[1]
         tx_data_temp = {
             'id': tx_temp['id'],
             'datetime': tx_temp['timestamp'],
-            'amount': tx_temp['op'][1]['amount']['amount'],
-            'asset_id': tx_temp['op'][1]['amount']['asset_id'],
-            'sender_id': tx_temp['op'][1]['from'],
+            'amount': tx_temp['op']['amount_']['amount'],
+            'asset_id': tx_temp['op']['amount_']['asset_id'],
+            'sender_id': tx_temp['op']['from'],
             'recipient_name': name_temp}
         txs.append(tx_data_temp)
     df = pd.DataFrame(txs).reset_index(drop=True)
@@ -318,9 +319,9 @@ def timeseries_register(json_propuesta_history, nododata_df, frec, nodo):
     Frecuencia dada por frec ('m' o 'd'). nodo = 'all' o nombre-nodo.
     """
     # fechas y nombres de registros
-    registros = [i for i in json_propuesta_history if i['op'][0]==5 and 'moneda-par' in i['op'][1]['name']]
+    registros = [i for i in json_propuesta_history if i['op_type']==5 and 'moneda-par' in i['op']['name']]
     dates = [i['timestamp'] for i in registros]
-    nombres = pd.Series([i['op'][1]['name'] for i in registros]).str.replace(r'moneda-par.','')
+    nombres = pd.Series([i['op']['name'] for i in registros]).str.replace(r'moneda-par.','')
     # dataframe (timezone BsAs, ordenado, merge con nodo, elimina nodo=None (cuentas nodo))
     # drop_duplicates porque hay registros duplicados (mismo id distinto virtual_op)
     reg_df = pd.DataFrame({'datetime':pd.to_datetime(dates).tz_localize('UTC').tz_convert('America/Buenos_Aires'),
