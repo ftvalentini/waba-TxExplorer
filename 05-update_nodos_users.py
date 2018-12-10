@@ -36,6 +36,9 @@ members = members.loc[members.nodo.isnull()]
 avales_tab = avales.loc[avales.sender_name.isin(nodos.name) & ~avales.recipient_name.isin(pd.concat([nodos.name,members_final.name])),
                         ['sender_name','recipient_name']].drop_duplicates()
 avales_tab.columns = ['nodo','name']
+# alerta si un user pertenece a mas de un nodo:
+if len(avales_tab.name.unique())<len(avales_tab.name):
+    sys.exit(str(avales_tab.name.loc[avales_tab.name.duplicated()].tolist()) + " received avales from different nodes")
 members = pd.merge(members.drop('nodo',axis=1), avales_tab, how='left', left_on='name', right_on='name')
 # agrega al definitivo y saca del temporal:
 members_final = members_final.append(members.loc[members.nodo.notnull()], ignore_index=True)
@@ -45,6 +48,9 @@ members = members.loc[members.nodo.isnull()]
 txs_tab = txs.loc[txs.sender_name.isin(nodos.name) & ~txs.recipient_name.isin(pd.concat([nodos.name,members_final.name])),
                  ['sender_name','recipient_name']].drop_duplicates()
 txs_tab.columns = ['nodo','name']
+# alerta si un user pertenece a mas de un nodo:
+if len(txs_tab.name.unique())<len(txs_tab.name):
+    sys.exit(str(txs_tab.name.loc[txs_tab.name.duplicated()].tolist()) + " received PAR from different nodes")
 members = pd.merge(members.drop('nodo',axis=1), txs_tab, how='left', left_on='name', right_on='name')
 # agrega al definitivo y saca del temporal:
 members_final = members_final.append(members.loc[members.nodo.notnull()], ignore_index=True)
