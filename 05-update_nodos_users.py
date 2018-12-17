@@ -7,16 +7,20 @@ import par_functions as pf
 
 #%%
 print("\nUpdating nodos memberships ...   ", end="", flush=True)
-# data (accounts sin nodo accounts - avales y txs reemplazando pamelaps por nodomardelplata)
+# data
 nodos = pf.nodos_data()
 accounts = pf.get_accounts()
-accounts = accounts.loc[~accounts.name.isin(nodos.name)]
 avales = pd.read_pickle('output/raw/avales_history_full.p')
-avales = avales.replace('pamelaps','nodomardelplata')
 txs = pd.read_pickle('output/raw/txs_history_full.p')
+# saca nodos-accounts de accounts
+accounts = accounts.loc[~accounts.name.isin(nodos.name)]
+# sustituye: nodomardelplata x pamelaps
+avales = avales.replace('pamelaps','nodomardelplata')
 txs = txs.replace('pamelaps','nodomardelplata')
+# sustituye: nodomendoza x lisandrofierro (solo en avales)
+avales = avales.replace('lisandrofierro','nodomendoza')
 
-# inicializa dataframe (guarda dictionary como initial para hacer chequeo al final)
+#%% inicializa dataframe (guarda dictionary como initial para hacer chequeo al final)
 members_initial = dict.fromkeys(nodos.name)
 members = pd.DataFrame({'name':accounts.name,'nodo':None})
 
@@ -92,7 +96,7 @@ members = members.loc[members.nodo.isnull()]
 
 #%% criterio: ajustes manuales
 otros20181119 = ['alessandroni','alfon1402','algarrobo','carlosloza','clauditesan','darriogo','dorisadelina','elidak','elmilitante',
- 'federicopacha','gabriel12b','genaromarcelo18','gini2018','laloarroyo','lamotta','lisandrofierro','lyllanschuck','mateo',
+ 'federicopacha','gabriel12b','genaromarcelo18','gini2018','laloarroyo','lamotta','lyllanschuck','mateo',
  'matiasjr1985','mongi','myriamrfp','nahuel','raulvalls','robertovera','robles','simon1965','vdeluca']
 members_final = members_final.drop(members_final[members_final.name.isin(otros20181119)].index)
 members = members.append(pd.DataFrame({'name': otros20181119, 'nodo':np.NAN}), ignore_index=True)

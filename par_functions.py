@@ -23,8 +23,10 @@ def nodos_data(prefix=r'moneda-par.nodo'):
     correct_i = pd.Series([i[0] for i in data]).str.contains(prefix)
     df = pd.DataFrame({'name':names,'id':ids}).loc[correct_i]
     # modificaciones: saca mdq y escobar, agrega pamelaps
+        # lisandrofierro no porque solo envia avales como admin
     df = df.loc[~df.name.isin(['nodomdq','nodoescobar'])]
     df = df.append({'name':'pamelaps','id':'1.2.667678'}, ignore_index=True)
+    # df = df.append({'name':'lisandrofierro','id':'1.2.1144304'}, ignore_index=True)
     return df
 
 def gob_accounts():
@@ -264,10 +266,11 @@ def filter_nodoaccounts_txs(txs_df):
 
 def filter_nodoaccounts_avales(df):
     """
-    Remove avales ops where nodo accounts receive avales
+    Remove avales ops where nodo accounts receive avales (including 'lisandrofierro')
     """
     nodos = nodos_data()
-    df = df.loc[~(df.recipient_name.isin(nodos.name)),:]
+    omit_names = nodos.name.tolist() + ['lisandrofierro']
+    df = df.loc[~(df.recipient_name.isin(omit_names)),:]
     return df
 
 def filter_special(df):

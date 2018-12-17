@@ -10,7 +10,7 @@ txs = pd.read_pickle('output/raw/txs_history_full.p')
 accounts = pf.get_accounts()
 nombres = accounts.name.tolist()
 
-#%% update saldo history of each user
+#%% update saldo history of each user (incluye nodo-accounts)
 print("\nUpdating saldos ...   ", end="", flush=True)
 t0 = time.time()
 saldos = pd.Series(np.full_like(nombres,None), index=nombres)
