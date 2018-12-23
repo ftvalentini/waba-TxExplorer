@@ -56,9 +56,9 @@ meses = c("Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto",
 loc = locale(tz="America/Buenos_Aires")
 ruta = "output/final/txs_escobarmet/"
 resumen = read_csv(ruta%+%'resumen.csv', col_type=cols(), locale=loc)
-users = list.files(path=ruta) %>% str_match('detalle_(.+)\\.csv') %>% na.omit() %>% 
+users = list.files(path=ruta) %>% str_match('detalle_(.+)\\.csv') %>% na.omit() %>%
   "["(,2) %>% unique
-detalles = map(users, 
+detalles = map(users,
                 ~read_csv(ruta%+%'detalle_'%+%.x%+%'.csv',
                           col_type=cols(), locale=loc)) %>%
   setNames(users)
@@ -119,10 +119,10 @@ resumen %>% nice_table(sort_by='usuario',
                                     'Saldo (intra-nodo)'='saldo_intra',
                                     'Saldo (extra-nodo)'='saldo_extra',
                                     'Saldo (total)'='saldo'),
-                       nota='No incluye los intercambios con la cuenta coordinadora del nodo') %>% 
+                       nota='No incluye los intercambios con las cuentas coordinadoras del nodo') %>% 
   formatStyle(c('Gasto (total)',
                 'Ingreso (total)',
-                'Saldo (total)'), color='black', fontWeight='bold') %>% 
+                'Saldo (total)'), color='black', fontWeight='bold') %>%
   knit_print()
 ```
 
@@ -148,4 +148,3 @@ for (t in names(detalles)) {
   cat("\n\n")
 }
 ```
-

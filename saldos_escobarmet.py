@@ -12,6 +12,8 @@ with open("data/working/nodos/nodoescobarmet.txt","r") as f:
 # nodo_members = pd.read_csv("output/final/nodo_nombre.csv")
 # nombres = nodo_members.loc[nodo_members.nodo=='nodoescobarmet'].name.tolist()
 escobarmet = accounts.loc[accounts.name.isin(nombres)]
+# nombres de cuentas de nodo
+nodo_names = ['nodoescobarmet','nodoescobar2','nodoescobar3','mutualmet']
 
 #%% full history of users
 users_full_history = []
@@ -39,7 +41,7 @@ txsf = txsm.loc[(txsm.datetime>start) & (txsm.datetime<=end)]
 # columnas
 txsf = txsf[['datetime','amount','sender_name','recipient_name']]
 
-#%% detalle de cada user
+#%% detalle completo (sin filtros de users) de cada user
 detalles = pd.Series(np.full_like(nombres,None), index=nombres)
 for n in nombres:
     txs_n = txsf.loc[(txsf.recipient_name==n) | (txsf.sender_name==n)]
@@ -47,8 +49,8 @@ for n in nombres:
     detalles[n] = txs_n
 
 #%% resumen de saldos
-# txs sin nodo account
-txsr = txsf.loc[~((txsf.sender_name=='nodoescobarmet') | (txsf.recipient_name=='nodoescobarmet'))]
+# txs sin nodo_names
+txsr = txsf.loc[~((txsf.sender_name.isin(nodo_names)) | (txsf.recipient_name.isin(nodo_names)))]
 # gasto/ingreso by user (intra-extra-total)
 resumen = pd.DataFrame(columns=['usuario','gasto_intra', 'gasto_extra', 'gasto',
                                 'ingreso_intra','ingreso_extra', 'ingreso',

@@ -5,7 +5,7 @@ import datetime, os, sys
 
 import par_functions as pf
 
-#%%
+#%% read data
 print("\nUpdating nodos memberships ...   ", end="", flush=True)
 # data
 nodos = pf.nodos_data()
@@ -14,11 +14,21 @@ avales = pd.read_pickle('output/raw/avales_history_full.p')
 txs = pd.read_pickle('output/raw/txs_history_full.p')
 # saca nodos-accounts de accounts
 accounts = accounts.loc[~accounts.name.isin(nodos.name)]
+
+#%% ajustes manuales en data
 # sustituye: nodomardelplata x pamelaps
 avales = avales.replace('pamelaps','nodomardelplata')
 txs = txs.replace('pamelaps','nodomardelplata')
 # sustituye: nodomendoza x lisandrofierro (solo en avales)
 avales = avales.replace('lisandrofierro','nodomendoza')
+# sustituye: nodoescobarmet x nodoescobar2/3
+avales = avales.replace('nodoescobar2','nodoescobarmet')
+avales = avales.replace('nodoescobar3','nodoescobarmet')
+txs = txs.replace('nodoescobar2','nodoescobarmet')
+txs = txs.replace('nodoescobar3','nodoescobarmet')
+# sustituye: nodoescobarmet x mutualmet
+avales = avales.replace('mutualmet','nodoescobarmet')
+txs = txs.replace('mutualmet','nodoescobarmet')
 
 #%% inicializa dataframe (guarda dictionary como initial para hacer chequeo al final)
 members_initial = dict.fromkeys(nodos.name)

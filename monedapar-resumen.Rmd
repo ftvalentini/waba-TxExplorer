@@ -51,7 +51,7 @@ loc = locale(tz="America/Buenos_Aires")
 avales = read_csv("output/final/avales_history_clean.csv", col_type=cols(), locale=loc)
 txs = read_csv("output/final/txs_history_clean.csv", col_type=cols(), locale=loc)
 
-nodos = list.files(path="output/final/resumen/m/") %>% str_match('\\_([:alpha:]+)\\.csv') %>%
+nodos = list.files(path="output/final/resumen/m/") %>% str_match('\\_([:graph:]+)\\.csv') %>%
   "["(,2) %>% unique
 
 resumen = list()

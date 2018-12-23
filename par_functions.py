@@ -22,10 +22,14 @@ def nodos_data(prefix=r'moneda-par.nodo'):
     ids = pd.Series([i[1] for i in data])
     correct_i = pd.Series([i[0] for i in data]).str.contains(prefix)
     df = pd.DataFrame({'name':names,'id':ids}).loc[correct_i]
-    # modificaciones: saca mdq y escobar, agrega pamelaps
+    # modificaciones: saca mdq y escobar y escobar2 y escobar3, agrega pamelaps y mutualmet
         # lisandrofierro no porque solo envia avales como admin
-    df = df.loc[~df.name.isin(['nodomdq','nodoescobar'])]
+    # CREO QUE NO HACE FALTA AGREGAR NINGUNA CUENTA
+    # SOLO DEJARLAS ANOTADAS COMO COMMENT
+    # ['pamelaps','lisandrofierro','mutualmet','nodoescobar2','nodoescobar3']
+    df = df.loc[~df.name.isin(['nodomdq','nodoescobar','nodoescobar2','nodoescobar3'])]
     df = df.append({'name':'pamelaps','id':'1.2.667678'}, ignore_index=True)
+    df = df.append({'name':'mutualmet','id':'1.2.1153082'}, ignore_index=True)
     # df = df.append({'name':'lisandrofierro','id':'1.2.1144304'}, ignore_index=True)
     return df
 
@@ -261,6 +265,7 @@ def filter_nodoaccounts_txs(txs_df):
     Remove txs where nodo accounts are involved
     """
     nodos = nodos_data()
+    omit_names = nodos.name.tolist() + ['nodoescobar2','nodoescobar3']
     df = txs_df.loc[~(txs_df.sender_name.isin(nodos.name) | txs_df.recipient_name.isin(nodos.name)),:]
     return df
 
@@ -269,7 +274,7 @@ def filter_nodoaccounts_avales(df):
     Remove avales ops where nodo accounts receive avales (including 'lisandrofierro')
     """
     nodos = nodos_data()
-    omit_names = nodos.name.tolist() + ['lisandrofierro']
+    omit_names = nodos.name.tolist() + ['lisandrofierro','nodoescobar2','nodoescobar3']
     df = df.loc[~(df.recipient_name.isin(omit_names)),:]
     return df
 
