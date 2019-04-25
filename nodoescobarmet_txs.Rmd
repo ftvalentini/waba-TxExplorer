@@ -119,14 +119,14 @@ resumen %>% nice_table(sort_by='usuario',
                                     'Saldo (intra-nodo)'='saldo_intra',
                                     'Saldo (extra-nodo)'='saldo_extra',
                                     'Saldo (total)'='saldo'),
-                       nota='No incluye los intercambios con las cuentas coordinadoras del nodo') %>% 
+                       nota='No incluye los intercambios con las cuentas coordinadoras del nodo') %>%
   formatStyle(c('Gasto (total)',
                 'Ingreso (total)',
                 'Saldo (total)'), color='black', fontWeight='bold') %>%
   knit_print()
 ```
 
-## Detalle {.tabset}
+## Detalle {.tabset .tabset-dropdown}
 
 ```{r include=F}
 # si no el resto de las tablas aparacen mal! (it's a kind of magic)
