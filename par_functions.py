@@ -73,7 +73,7 @@ def get_accounts():
     # nombres moneda-par registrados en history
     register_history = [i for i in propuesta_history if 'op_type' in i and i['op_type']==5 and 'moneda-par' in i['op']['name']]
     names = [i['op']['name'].replace(r'moneda-par.','') for i in register_history]
-    ids = [i['result'].translate(str.maketrans('','',r'[""]')).split(',')[1] for i in register_history]
+    ids = [i['result'][1] for i in register_history]
     # de mas viejo a mas nuevo:
     names.reverse()
     ids.reverse()
@@ -90,7 +90,7 @@ def get_propuesta_history():
     intersect = []
     i = 0
     while not intersect:
-        url = 'http://185.208.208.184:5000/account_history_pager_elastic?account_id='+user_id+'&page='+str(i)
+        url = 'http://185.208.208.184:5000/account_history?account_id='+user_id+'&page='+str(i)
         print('page '+str(i)+' ...   ', end="", flush=True)
         response = urllib.request.urlopen(url)
         data = json.loads(response.read())
@@ -107,7 +107,7 @@ def get_user_history(user_id):
     if user_id not in old.index:
         out = []
         for i in range(999999999999999999999):
-            url = 'http://185.208.208.184:5000/account_history_pager_elastic?account_id='+user_id+'&page='+str(i)
+            url = 'http://185.208.208.184:5000/account_history?account_id='+user_id+'&page='+str(i)
             print('page '+str(i)+' ...   ', end="", flush=True)
             response = urllib.request.urlopen(url)
             data = json.loads(response.read())
@@ -125,7 +125,7 @@ def get_user_history(user_id):
         intersect = []
         i = 0
         while not intersect:
-            url = 'http://185.208.208.184:5000/account_history_pager_elastic?account_id='+user_id+'&page='+str(i)
+            url = 'http://185.208.208.184:5000/account_history?account_id='+user_id+'&page='+str(i)
             print('page '+str(i)+' ...   ', end="", flush=True)
             response = urllib.request.urlopen(url)
             data = json.loads(response.read())
