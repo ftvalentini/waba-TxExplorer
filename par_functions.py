@@ -14,7 +14,7 @@ def nodos_data(prefix=r'moneda-par.nodo'):
     """
     Names and ids of nodos accounts
     """
-    url = 'http://185.208.208.184:5000/lookup_accounts?start='+prefix
+    url = 'https://explorer.bitshares-kibana.info/lookup_accounts?start='+prefix
     response = urllib.request.urlopen(url)
     data = json.loads(response.read())
     # API devuelve 1000 nombres (match total en los primeros)
@@ -107,7 +107,7 @@ def get_user_history(user_id):
     if user_id not in old.index:
         out = []
         for i in range(999999999999999999999):
-            url = 'http://185.208.208.184:5000/account_history?account_id='+user_id+'&page='+str(i)
+            url = 'https://explorer.bitshares-kibana.info/account_history?account_id='+user_id+'&page='+str(i)
             print('page '+str(i)+' ...   ', end="", flush=True)
             response = urllib.request.urlopen(url)
             data = json.loads(response.read())
@@ -458,7 +458,7 @@ def get_user_name(user_id, account_prefix=r'moneda-par'):
     """
     Get user name from user id.
     """
-    url = 'http://185.208.208.184:5000/account_name?account_id='+user_id
+    url = 'https://explorer.bitshares-kibana.info/account_name?account_id='+user_id
     response = urllib.request.urlopen(url)
     name = json.loads(response.read())
     return re.sub(account_prefix+r'.','',name)
@@ -467,7 +467,7 @@ def get_user_id(user_name):
     """
     Get user id from user name.
     """
-    url = 'http://185.208.208.184:5000/account_id?account_name='+user_name
+    url = 'https://explorer.bitshares-kibana.info/account_id?account_name='+user_name
     response = urllib.request.urlopen(url)
     id = json.loads(response.read())
     return id
@@ -490,7 +490,7 @@ def get_accounts_OLD(prefix=r'moneda-par'):
     Return DataFrame with name and id of users with prefix in name.
     CUIDADO: solo devuelve los primeros mil nombres
     """
-    url = 'http://185.208.208.184:5000/lookup_accounts?start='+prefix
+    url = 'https://explorer.bitshares-kibana.info/lookup_accounts?start='+prefix
     response = urllib.request.urlopen(url)
     data = json.loads(response.read())
     # devuelve nombres sin que el match sea total
@@ -508,7 +508,7 @@ def get_user_history_OLD(user_id, max_page_num=1):
     """
     data = []
     for page in range(max_page_num):
-        url = 'http://185.208.208.184:5000/account_history_pager_elastic?account_id='+user_id+'&page='+str(page)
+        url = 'https://explorer.bitshares-kibana.info/account_history_pager_elastic?account_id='+user_id+'&page='+str(page)
         response_temp = urllib.request.urlopen(url)
         data_temp = json.loads(response_temp.read())
         if len(data_temp)>0:
@@ -532,7 +532,7 @@ def filter_tokens(txs_df, tk_names):
 #     """
 #     data = []
 #     for page in range(max_page_num):
-#         url = 'http://185.208.208.184:5000/account_history_pager_elastic?account_id=account_id%3D'+user_id+'&page='+str(page)
+#         url = 'https://explorer.bitshares-kibana.info/account_history_pager_elastic?account_id=account_id%3D'+user_id+'&page='+str(page)
 #         response_temp = urllib.request.urlopen(url)
 #         data_temp = json.loads(response_temp.read())
 #         if len(data_temp)>0:
