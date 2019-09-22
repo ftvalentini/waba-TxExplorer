@@ -85,20 +85,24 @@ def get_propuesta_history():
     user_id='1.2.151476'
     old = pickle.load(open("output/raw/propuesta_history.p", "rb"))
     old_i = [x['id'] for x in old]
+    # lista que acumula nuevas txs
     new = []
-    # lista que testa interseccion entre old y new (not intersect)
-    intersect = []
+    # lista para testear interseccion entre old y new
+    new_temp = [0]
     i = 0
-    while not intersect:
-        url = 'http://185.208.208.184:5000/account_history?account_id='+user_id+'&page='+str(i)
+    while len(new_temp)>0:
+        url = 'https://explorer.bitshares-kibana.info/account_history?account_id='+user_id+'&page='+str(i)
         print('page '+str(i)+' ...   ', end="", flush=True)
         response = urllib.request.urlopen(url)
         data = json.loads(response.read())
         print('[DONE]')
-        new += data
-        intersect = [x for x in new if x['id'] in old_i]
+        new_temp = [x for x in data if x['id'] not in old_i]
+        new += new_temp
         i = i+1
-    out = new[:-len(intersect)] + old
+    # concatena old-new y ordena cronologicamente
+    out = new + old
+    i_sorted = np.argsort([x['timestamp'] for x in out]).tolist()[::-1]
+    out = [out[i] for i in i_sorted]
     return out
 
 def get_user_history(user_id):
@@ -120,20 +124,24 @@ def get_user_history(user_id):
     else:
         old = old[user_id]
         old_i = [x['id'] for x in old]
+        # lista que acumula nuevas txs
         new = []
-        # lista que testa interseccion entre old y new por medio de id de la operacion
-        intersect = []
+        # lista para testear interseccion entre old y new
+        new_temp = [0]
         i = 0
-        while not intersect:
-            url = 'http://185.208.208.184:5000/account_history?account_id='+user_id+'&page='+str(i)
+        while len(new_temp)>0:
+            url = 'https://explorer.bitshares-kibana.info/account_history?account_id='+user_id+'&page='+str(i)
             print('page '+str(i)+' ...   ', end="", flush=True)
             response = urllib.request.urlopen(url)
             data = json.loads(response.read())
             print('[DONE]')
-            new += data
-            intersect = [x for x in new if x['id'] in old_i]
+            new_temp = [x for x in data if x['id'] not in old_i]
+            new += new_temp
             i = i+1
-        out = new[:-len(intersect)] + old
+        out = new + old
+    # ordena cronologicamente
+    i_sorted = np.argsort([x['timestamp'] for x in out]).tolist()[::-1]
+    out = [out[i] for i in i_sorted]
     return out
 
 def get_register(json_account_history):
